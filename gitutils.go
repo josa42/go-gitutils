@@ -2,8 +2,16 @@ package gitutils
 
 import (
 	"os/exec"
+	"regexp"
 	"strings"
 )
+
+// Remote :
+type Remote struct {
+	Name  string
+	Fetch string
+	Push  string
+}
 
 // Exec :
 func Exec(args ...string) (string, error) {
@@ -101,6 +109,41 @@ func Push() error {
 	}
 
 	return nil
+}
+
+// Remotes :
+func Remotes() map[string]Remote {
+
+	remotes := map[string]Remote{}
+
+	out, _ := Exec("remote", "--verbose")
+	re, _ := regexp.Compile(`^([a-z]+)\s+([^\s]+)\s+\((.+)\)$`)
+
+	for _, line := range strings.Split(out, "\n") {
+		result := re.FindStringSubmatch(line)
+
+		name := result[1]
+		url := result[2]
+		urlType := result[3]
+
+		remote := remotes[name]
+
+		if remote.Name == "" {
+			remote = Remote{
+				Name: name,
+			}
+		}
+
+		if urlType == "fetch" {
+			remote.Fetch = url
+		} else if urlType == "push" {
+			remote.Push = url
+		}
+
+		remotes[name] = remote
+	}
+
+	return remotes
 }
 
 func gitCommand(args ...string) *exec.Cmd {
