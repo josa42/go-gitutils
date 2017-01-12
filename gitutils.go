@@ -85,6 +85,55 @@ func CurrentTag() string {
 	return out
 }
 
+// Branches :
+func Branches() []string {
+	out, _ := Exec("branch")
+
+	var branches []string
+
+	for _, branch := range strings.Split(out, "\n") {
+		branch = strings.Trim(branch, " *")
+		if branch != "" {
+			branches = append(branches, branch)
+		}
+	}
+
+	return branches
+}
+
+// RemoteBranches :
+func RemoteBranches() []string {
+	out, _ := Exec("branch", "--remote")
+
+	var branches []string
+
+	for _, branch := range strings.Split(out, "\n") {
+		branch = strings.Trim(branch, " *")
+		if branch != "" {
+			branches = append(branches, branch)
+		}
+	}
+
+	return branches
+}
+
+// MergedBranches :
+func MergedBranches() []string {
+	out, _ := Exec("branch", "--merged")
+
+	var branches []string
+	var currentBranch = CurrentBranch()
+
+	for _, branch := range strings.Split(out, "\n") {
+		branch = strings.Trim(branch, " *")
+		if branch != "" && branch != currentBranch {
+			branches = append(branches, branch)
+		}
+	}
+
+	return branches
+}
+
 // CurrentBranch :
 func CurrentBranch() string {
 	out, _ := Exec("rev-parse", "--abbrev-ref", "HEAD")
