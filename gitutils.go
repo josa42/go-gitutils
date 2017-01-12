@@ -85,6 +85,12 @@ func CurrentTag() string {
 	return out
 }
 
+// CurrentBranch :
+func CurrentBranch() string {
+	out, _ := Exec("rev-parse", "--abbrev-ref", "HEAD")
+	return out
+}
+
 // TagExists :
 func TagExists(tag string) bool {
 	for _, existingTag := range Tags() {
