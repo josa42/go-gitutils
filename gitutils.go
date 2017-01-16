@@ -22,6 +22,20 @@ func Exec(args ...string) (string, error) {
 	return strings.Trim(string(outputBytes), " \n"), err
 }
 
+// IsIgnored :
+func IsIgnored(filePath string) bool {
+	_, err := Exec("check-ignore", "--verbose", filePath)
+
+	switch err.(type) {
+	case nil:
+		return true
+	case *exec.ExitError:
+		return false
+	default:
+		panic(err)
+	}
+}
+
 // IsDirty :
 func IsDirty() bool {
 
