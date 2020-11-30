@@ -190,11 +190,19 @@ func Remotes() map[string]Remote {
 
 	remotes := map[string]Remote{}
 
-	out, _ := Exec("remote", "--verbose")
-	re, _ := regexp.Compile(`^([a-z]+)\s+([^\s]+)\s+\((.+)\)$`)
+	out, err := Exec("remote", "--verbose")
+	re, _ := regexp.Compile(`^([^\s]+)\s+([^\s]+)\s+\((.+)\)$`)
+
+	if err != nil {
+		return remotes
+	}
 
 	for _, line := range strings.Split(out, "\n") {
 		result := re.FindStringSubmatch(line)
+
+		if len(result) == 0 {
+			continue
+		}
 
 		name := result[1]
 		url := result[2]
