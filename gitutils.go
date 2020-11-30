@@ -22,6 +22,11 @@ func Exec(args ...string) (string, error) {
 	return strings.Trim(string(outputBytes), " \n"), err
 }
 
+func IsRepo() bool {
+	_, err := Exec("rev-parse", "--git-dir")
+	return err == nil
+}
+
 // IsIgnored :
 func IsIgnored(filePath string) bool {
 	_, err := Exec("check-ignore", "--verbose", filePath)
