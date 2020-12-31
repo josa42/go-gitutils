@@ -106,46 +106,52 @@ func CurrentTag() string {
 
 // Branches :
 func Branches() []string {
-	out, _ := Exec("branch")
-
-	var branches []string
-
-	for _, branch := range strings.Split(out, "\n") {
-		branch = strings.Trim(branch, " *")
-		if branch != "" {
-			branches = append(branches, branch)
-		}
-	}
-
-	return branches
+	return branches([]string{}, func(b string) bool { return true })
 }
 
 // RemoteBranches :
 func RemoteBranches() []string {
-	out, _ := Exec("branch", "--remote")
-
-	var branches []string
-
-	for _, branch := range strings.Split(out, "\n") {
-		branch = strings.Trim(branch, " *")
-		if branch != "" {
-			branches = append(branches, branch)
-		}
-	}
-
-	return branches
+	return branches([]string{"--remote"}, func(branch string) bool { return true })
 }
 
 // MergedBranches :
 func MergedBranches() []string {
-	out, _ := Exec("branch", "--merged")
+	currentBranch := CurrentBranch()
+
+	return branches([]string{"--merged"}, func(branch string) bool {
+		return branch != currentBranch
+	})
+}
+
+// CurrentBranch :
+func CurrentBranch() string {
+	out, _ := Exec("branch", "--show-current")
+	return out
+}
+
+func DefaultBranch() string {
+	remote := "origin"
+	prefix := remote + "/"
+
+	b := branches([]string{"--remote", "--points-at", prefix + "HEAD"}, func(branch string) bool {
+		return strings.HasPrefix(branch, prefix)
+	})
+
+	if len(b) > 0 {
+		return strings.Replace(b[0], prefix, "", 1)
+	}
+
+	return "master"
+}
+
+func branches(args []string, filter func(string) bool) []string {
+	out, _ := Exec(append([]string{"branch"}, args...)...)
 
 	var branches []string
-	var currentBranch = CurrentBranch()
 
 	for _, branch := range strings.Split(out, "\n") {
 		branch = strings.Trim(branch, " *")
-		if branch != "" && branch != currentBranch {
+		if branch != "" && !strings.Contains(branch, " -> ") && filter(branch) {
 			branches = append(branches, branch)
 		}
 	}
@@ -153,10 +159,25 @@ func MergedBranches() []string {
 	return branches
 }
 
-// CurrentBranch :
-func CurrentBranch() string {
-	out, _ := Exec("rev-parse", "--abbrev-ref", "HEAD")
-	return out
+
+func IsCurrentBranch(branch string) bool {
+	return branch != "" && branch == CurrentBranch()
+}
+
+func BranchExists(branch string) bool {
+	// TODO use rev-parse? => git rev-parse --abbrev-ref <branch>
+	for _, existingBranch := range Branches() {
+		if existingBranch == branch {
+			return true
+		}
+	}
+
+	return false
+}
+
+func DeleteBranch(branch string) error {
+	_, err := Exec("branch", "--delete", branch)
+	return err
 }
 
 // TagExists :
@@ -226,6 +247,16 @@ func Remotes() map[string]Remote {
 	}
 
 	return remotes
+}
+
+func RemoteExists(remoteName string) bool {
+	for _, existingRemote := range Remotes() {
+		if existingRemote.Name == remoteName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func gitCommand(args ...string) *exec.Cmd {
