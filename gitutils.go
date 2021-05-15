@@ -14,8 +14,21 @@ type Remote struct {
 	Push  string
 }
 
+var gitMock func(args ...string) (string, error)
+
+func Mock(mock func(args ...string) (string, error)) func() {
+	gitMock = mock
+	return func() {
+		gitMock = nil
+	}
+}
+
 // Exec :
 func Exec(args ...string) (string, error) {
+
+	if gitMock != nil {
+		return gitMock(args...)
+	}
 
 	cmd := gitCommand(args...)
 	outputBytes, err := cmd.Output()
