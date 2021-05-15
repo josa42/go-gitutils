@@ -160,6 +160,11 @@ func FetchRemoteInto(remote, branch string) error {
 	return error
 }
 
+func ResetHard(ref string) error {
+	_, error := Exec("reset", "--hard", ref)
+	return error
+}
+
 func branches(args []string, filter func(string) bool) []string {
 	out, _ := Exec(append([]string{"branch"}, args...)...)
 
