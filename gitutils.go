@@ -165,6 +165,16 @@ func ResetHard(ref string) error {
 	return error
 }
 
+func Pull(remote, branch string) error {
+	_, error := Exec("pull", remote, branch)
+	return error
+}
+
+func PullRebase(remote, branch string) error {
+	_, error := Exec("pull", "--rebase", remote, branch)
+	return error
+}
+
 func branches(args []string, filter func(string) bool) []string {
 	out, _ := Exec(append([]string{"branch"}, args...)...)
 
