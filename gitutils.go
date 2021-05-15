@@ -1,6 +1,7 @@
 package gitutils
 
 import (
+	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -144,6 +145,21 @@ func DefaultBranch() string {
 	return "master"
 }
 
+func Fetch() error {
+	_, error := Exec("fetch", "--prune", "--tags")
+	return error
+}
+
+func FetchRemote(remote string) error {
+	_, error := Exec("fetch", "--prune", "--tags", remote)
+	return error
+}
+
+func FetchRemoteInto(remote, branch string) error {
+	_, error := Exec("fetch", "--prune", "--tags", "--update-head-ok", remote, fmt.Sprintf("%[1]s:%[1]s", branch))
+	return error
+}
+
 func branches(args []string, filter func(string) bool) []string {
 	out, _ := Exec(append([]string{"branch"}, args...)...)
 
@@ -158,7 +174,6 @@ func branches(args []string, filter func(string) bool) []string {
 
 	return branches
 }
-
 
 func IsCurrentBranch(branch string) bool {
 	return branch != "" && branch == CurrentBranch()
