@@ -175,6 +175,16 @@ func PullRebase(remote, branch string) error {
 	return error
 }
 
+func Push(remote, branch string) error {
+	_, error := Exec("push", remote, branch)
+	return error
+}
+
+func ForcePush(remote, branch string) error {
+	_, error := Exec("push", "--force", remote, branch)
+	return error
+}
+
 func branches(args []string, filter func(string) bool) []string {
 	out, _ := Exec(append([]string{"branch"}, args...)...)
 
@@ -221,8 +231,7 @@ func TagExists(tag string) bool {
 	return false
 }
 
-// Push :
-func Push() error {
+func PushDefault() error {
 	_, err1 := Exec("push")
 	if err1 != nil {
 		return err1
